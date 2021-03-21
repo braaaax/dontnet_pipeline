@@ -2,7 +2,7 @@ import os, sys, argparse, math
 
 rundotxml = """
 Function writeRunDotXML()
-  strPath = Environ("USERPROFILE") + "\\run.xml"
+  strPath = Environ("TEMP") + "\\run.xml"
   Dim fso As Object
   Set fso = CreateObject("Scripting.FileSystemObject")
   Dim oFile As Object
@@ -46,7 +46,7 @@ End Function
 """
 
 firstpart = '''
-Function writeTestDotTXT()
+Function writePart%s()
   strPath = Environ("TEMP") + "\\%s"
   Dim fso As Object
   Set fso = CreateObject("Scripting.FileSystemObject")
@@ -146,7 +146,7 @@ if args.type == "word_macro":
     count = 0
     parts = 1
     with open(args.infile, "r") as f:
-        out = firstpart % args.filename
+        out = firstpart % (parts, args.filename)
         print(out) 
         while True:
             line = f.readline()
