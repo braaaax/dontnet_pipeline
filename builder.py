@@ -728,19 +728,22 @@ def pretty_format_shellcode(shellcode):
     code_size = len(shellcode)
     for num, byte in enumerate(shellcode):
         if num != 0 and num%49 == 0: hshellcode += f"\n\t\t\t\t{hex(byte)}," ;continue # rows of 50
-        if num>0:                                                                                                                                                                                                                                                                                                                                                                     
+        if num>0: 
+            if num == code_size-1: hshellcode += f"{hex(byte)}"; continue
             hshellcode += f"{hex(byte)},"                                                                                                                                                                                                                                                                                                                                                            
         if num == 0:                                                                                                                                                                                                                                                                                                                                                                                        
             hshellcode += f"{hex(byte)}," 
     return hshellcode
 
+verbose = False
+pretty = False
 parser = argparse.ArgumentParser(description="generate .NET executable to run AES-CBC encrypted shellcode.")
 parser.add_argument('-inbin', type=str, help=".bin file")
 parser.add_argument('--arch', type=str, choices=['x86', 'x64'], default="x64")
 parser.add_argument('--outfile', type=str, default="out.exe")
 parser.add_argument('--type', type=str, choices=['exe', 'workflowcompiler', 'msbuild', 'installutil'], default="exe")
-parser.add_argument('--verbose', type=bool, default=False)
-parser.add_argument('--pretty', type=bool, default=False)
+parser.add_argument('--verbose', default=False, action='store_true', dest='verbose')
+parser.add_argument('--pretty', default=False, action='store_true', dest='pretty')
 args = parser.parse_args()
 input_filename = args.inbin
 with open(input_filename, "rb") as file: data = file.read()

