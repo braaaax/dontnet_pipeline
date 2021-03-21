@@ -132,14 +132,14 @@ def format_shellcode_for_xlm4(shellcode):
             hshellcode += f"CHAR({hex(byte)})," 
         if num == code_size-1: hshellcode += f"&CHAR({hex(byte)})"
     return hshellcode
-
+verbose = False
 parser = argparse.ArgumentParser(description="help create office macro")
 parser.add_argument('-infile', type=str, help="bin file or Program.cs file depending on type")
 parser.add_argument('--outfile', type=str, default="out.txt")
 parser.add_argument('--filename', type=str, default="brax.txt")
 parser.add_argument('--type', type=str, choices=['word_macro', 'xlm4_macro'], default="word_macro")
 parser.add_argument('--exectype', type=str, choices=['shell', 'wmi'], default="shell")
-parser.add_argument('--verbose', type=bool, default=False)
+parser.add_argument('--verbose', default=False, action='store_true', dest='verbose')
 args = parser.parse_args()
 
 if args.type == "word_macro":

