@@ -183,9 +183,9 @@ def format_shellcode_caesar(shellcode, k):
     code_size = len(shellcode)                                                                                                                                                                                                                                                                                                                                                                       
     for num, byte in enumerate(shellcode):                                                                                                                                                                                                                                                                                                                                                           
         if num != code_size - 1: 
-            hshellcode += f"{hex(byte+k)},"
+            hshellcode += f"{byte+k},"
         else: 
-            hshellcode += f"{hex(byte+k)}"
+            hshellcode += f"{byte+k}"
     return hshellcode
 
 def format_shellcode_for_xlm4(shellcode):
