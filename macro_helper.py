@@ -22,6 +22,7 @@ Function MyMacro()
   time = DateDiff("s", t1, t2)
   If time < 2 Then
     Exit Function
+  End If
 
   buf = Array(%s)
   For i = 0 To UBound(buf) 
