@@ -181,7 +181,8 @@ def format_shellcode_caesar(shellcode, k):
     # adds k to each byte
     hshellcode = ""
     code_size = len(shellcode)                                                                                                                                                                                                                                                                                                                                                                       
-    for num, byte in enumerate(shellcode):                                                                                                                                                                                                                                                                                                                                                           
+    for num, byte in enumerate(shellcode):       
+        if num%25 == 0 and num != 0: hshellcode += "_\n";continue                                                                                                                                                                                                                                                                                                                                                    
         if num != code_size - 1: 
             hshellcode += f"{byte+k},"
         else: 
