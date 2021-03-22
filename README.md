@@ -118,6 +118,6 @@ End Sub
 ```  
 
 ## References and research  
-(outflank)[https://outflank.nl/blog/2018/10/06/old-school-evil-excel-4-0-macros-xlm/]  
-(fortynorthsecurity - excelntdonut blog post)[https://fortynorthsecurity.com/blog/excelntdonut/]  
-(cybereason)[https://www.cybereason.com/blog/excel4.0-macros-now-with-twice-the-bits]     
+[outflank's old school evil excel 4.0 macros](https://outflank.nl/blog/2018/10/06/old-school-evil-excel-4-0-macros-xlm/)  
+[fortynorthsecurity - excelntdonut blog post](https://fortynorthsecurity.com/blog/excelntdonut/)  
+[cybereason's excellent technical post on x64 macros](https://www.cybereason.com/blog/excel4.0-macros-now-with-twice-the-bits)     
