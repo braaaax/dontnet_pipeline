@@ -2,10 +2,13 @@
 Compile a shellcode runner exe or generate source to bypass Applocker using various methods.  
 
 ### Install 
-`python3 -m venv env`  
-`source env/bin/activate`  
-`python -m pip install pycryptodome`  
-`python builder.py -inbin test.bin --arch x64 --pretty`  
+```bash
+python3 -m venv env  
+`source env/bin/activate  
+`python -m pip install pycryptodome  
+`python builder.py -inbin test.bin --arch x64 --pretty
+```
+
 Exec the resulting `out.exe` file on a windows machine.  
 
 Requires the `mono` package.  
@@ -118,6 +121,8 @@ End Sub
 ```  
 
 ## References and research  
+[research on msbuild bypass](https://web.archive.org/web/20161212224652/http://subt0x10.blogspot.com/2016/09/bypassing-application-whitelisting.html)  
+[research on the workflow.compiler bypass](https://posts.specterops.io/arbitrary-unsigned-code-execution-vector-in-microsoft-workflow-compiler-exe-3d9294bc5efb)  
 [outflank's old school evil excel 4.0 macros](https://outflank.nl/blog/2018/10/06/old-school-evil-excel-4-0-macros-xlm/)  
 [fortynorthsecurity - excelntdonut blog post](https://fortynorthsecurity.com/blog/excelntdonut/)  
 [cybereason's excellent technical post on x64 macros](https://www.cybereason.com/blog/excel4.0-macros-now-with-twice-the-bits)     
