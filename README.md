@@ -4,9 +4,9 @@ Compile a shellcode runner exe or generate source to bypass Applocker using vari
 ### Install 
 ```bash
 python3 -m venv env  
-`source env/bin/activate  
-`python -m pip install pycryptodome  
-`python builder.py -inbin test.bin --arch x64 --pretty
+source env/bin/activate  
+python -m pip install pycryptodome  
+python builder.py -inbin test.bin --arch x64 --pretty
 ```
 
 Exec the resulting `out.exe` file on a windows machine.  
